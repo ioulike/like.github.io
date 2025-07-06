@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" name="viewport">
+  <meta content="yes" name="apple-mobile-web-app-capable">
+  <meta content="yes" name="apple-touch-fullscreen">
+  <meta content="black" name="apple-mobile-web-app-status-bar-style">
+  <meta content="320" name="MobileOptimized">
+  <title></title>
+<style>
+/* 绿色笑脸加载动画样式 */
+.loader {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: 100px;
+  z-index: 999;
+}
+
+.mouth {
+  fill: none;
+  stroke: #00b51d;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 44, 44;
+  transform-origin: center;
+  animation: mounthAni 2.3s ease-out infinite;
+}
+
+.eye {
+  fill: none;
+  stroke: #00b51d;
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 0, 66;
+  transform-origin: center;
+  transform: rotate(-45deg);
+  animation: eyeAni 2.3s ease-in-out infinite;
+}
+
+@keyframes mounthAni {
+  40% {
+    stroke-dasharray: 44, 22;
+  }
+  80%, 100% {
+    stroke-dasharray: 44, 44;
+    transform: rotate(720deg);
+  }
+}
+
+@keyframes eyeAni {
+  40% {
+    stroke-dasharray: 0, 77;
+  }
+  80%, 100% {
+    transform: rotate(675deg);
+    stroke-dasharray: 0, 66;
+  }
+}
+
+.content {
+  height: 100%;
+  width: 100%;
+  position: fixed;
+  left: -2px;
+  top: -2px;
+}
+</style>
+</head>
+<body>
+
+<!-- 绿色笑脸加载动画 -->
+<div class="loader">
+  <svg width="100" height="100">
+    <circle class="mouth" cx="50" cy="50" r="14"></circle>
+    <circle class="eye" cx="50" cy="50" r="14"></circle>
+  </svg>
+</div>
+
+<script>
+var liugao = new URLSearchParams(window.location.search);
+var encodedParam = liugao.get('c');
+var liu = atob(encodedParam);
+
+function checkWhitelist(url, whitelist) {
+  var domain = '';
+  try {
+    domain = new URL(url).hostname;
+  } catch(e) {
+    console.error("无效的URL格式");
+    return false;
+  }
+
+  // 支持泛解析域名匹配，如 *.example.com
+  for (var i = 0; i < whitelist.length; i++) {
+    var pattern = whitelist[i]
+      .replace(/\./g, '\\.')   // 转义 .
+      .replace(/\*/g, '.*');   // 替换 * 为正则通配符
+    var regex = new RegExp('^' + pattern + '$');
+    if (regex.test(domain)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+window.processWhitelist = function(data) {
+  var whitelist = data.domains || [];
+  var loader = document.querySelector('.loader');
+
+  if (liu.includes("http")) {
+    if (checkWhitelist(liu, whitelist)) {
+      setTimeout(function() {
+        loader.style.display = "none";
+        var html='<iframe class="content" src="'+liu+'"></iframe>';
+        document.body.innerHTML += html;
+        console.log("加载允许的URL:", liu);
+      }, 0);
+    } else {
+      console.log("URL不在白名单中:", liu);
+      loader.style.display = "none";
+      alert("此域名未过白，联系LLLdr666过白");
+    }
+  } else {
+    console.log("nourls");
+    loader.style.display = "none";
+  }
+};
+
+var script = document.createElement('script');
+script.src = 'https://c.cos.ymkjs.com/cos/cos.php?callback=processWhitelist';//后台地址
+script.onerror = function() {
+  console.error("加载白名单失败");
+  document.querySelector('.loader').style.display = "none";
+  alert("加载白名单失败，请刷新页面或稍后再试。");
+};
+document.head.appendChild(script);
+</script>
+
+<script>
+var firefox = navigator.userAgent.indexOf('Firefox') != -1;
+function MouseWheel(e,doc){
+	e.preventDefault && e.preventDefault(),e.returnValue = false;
+	var up = firefox && e.detail < 0 || e.wheelDelta > 0;
+	doc.body.scrollTop = doc.documentElement.scrollTop += up?-50:50;
+}
+function bindMouseWhee(ifr){
+	try{
+		var doc = ifr.contentWindow.document;
+		firefox?doc.addEventListener('DOMMouseScroll',function(e){MouseWheel(e,doc)},false):(doc.onmousewheel = function(e){MouseWheel(e||ifr.contentWindow.event,doc)});
+	}catch(e){
+		console.log('跨域无法获取iframe加载document', e);
+	}
+}
+</script>
+</body>
+</html>
